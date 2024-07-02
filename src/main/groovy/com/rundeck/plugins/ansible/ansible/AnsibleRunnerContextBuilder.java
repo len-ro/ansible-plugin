@@ -886,7 +886,9 @@ public class AnsibleRunnerContextBuilder {
         //also append all `job` env variables
         Map<String, String> jobOptions = context.getDataContext().get("job");
         for (Map.Entry<String, String> entry : jobOptions.entrySet()) {
-            options.put("RD_JOB_" + entry.getKey().toUpperCase(), entry.getValue());
+            if(entry.getValue() != null) {
+                options.put("RD_JOB_" + entry.getKey().toUpperCase(), entry.getValue());
+            }
         }
         return options;
     }
