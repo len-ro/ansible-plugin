@@ -742,6 +742,13 @@ public class AnsibleRunnerBuilder {
         // set rundeck options as environment variables
         Map<String,String> options = context.getDataContext().get("option");
         if (options != null) {
+            //also append all `job` env variables
+            Map<String, String> jobOptions = context.getDataContext().get("job");
+            for (Map.Entry<String, String> entry : jobOptions.entrySet()) {
+                if (entry.getValue() != null) {
+                    options.put("RD_JOB_" + entry.getKey().toUpperCase(), entry.getValue());
+                }
+            }
             runner = runner.options(options);
         }
 
@@ -925,6 +932,9 @@ public class AnsibleRunnerBuilder {
     
     public String getPassphraseStorageData(String storagePath) throws ConfigurationException {
 
+        if(storagePath == null) {
+            return null;
+        }
         Path path = PathUtil.asPath(storagePath);
         try {
             ResourceMeta contents = context.getStorageTree().getResource(path)
