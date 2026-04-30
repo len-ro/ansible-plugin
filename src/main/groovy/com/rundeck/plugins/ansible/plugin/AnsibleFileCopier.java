@@ -41,7 +41,7 @@ public class AnsibleFileCopier implements FileCopier, AnsibleDescribable, ProxyR
         builder.property(INVENTORY_INLINE_PROP);
         builder.property(CONFIG_FILE_PATH);
         builder.property(SSH_AUTH_TYPE_PROP);
-        builder.property(SSH_USER_PROP);
+         builder.property(SSH_USER_PROP);
         builder.property(SSH_PASSWORD_STORAGE_PROP);
         builder.property(SSH_KEY_FILE_PROP);
         builder.property(SSH_KEY_STORAGE_PROP);
@@ -149,6 +149,7 @@ public class AnsibleFileCopier implements FileCopier, AnsibleDescribable, ProxyR
 
     try {
         runner = AnsibleRunner.buildAnsibleRunner(contextBuilder);
+        runner.setCustomTmpDirPath(AnsibleUtil.getCustomTmpPathDir(contextBuilder.getFramework()));
     } catch (ConfigurationException e) {
           throw new FileCopierException("Error configuring Ansible.",AnsibleFailureReason.ParseArgumentsError, e);
     }

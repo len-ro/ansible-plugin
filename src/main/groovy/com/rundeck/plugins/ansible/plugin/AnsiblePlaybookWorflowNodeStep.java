@@ -2,6 +2,7 @@ package com.rundeck.plugins.ansible.plugin;
 
 import com.dtolabs.rundeck.core.execution.ExecutionContext;
 import com.dtolabs.rundeck.core.execution.proxy.ProxyRunnerPlugin;
+import com.dtolabs.rundeck.plugins.config.ConfiguredBy;
 import com.rundeck.plugins.ansible.ansible.AnsibleDescribable;
 import com.rundeck.plugins.ansible.ansible.AnsibleException;
 import com.rundeck.plugins.ansible.ansible.AnsibleRunner;
@@ -21,14 +22,17 @@ import java.util.List;
 import java.util.Map;
 
 @Plugin(name = AnsiblePlaybookWorflowNodeStep.SERVICE_PROVIDER_NAME, service = ServiceNameConstants.WorkflowNodeStep)
-public class AnsiblePlaybookWorflowNodeStep implements NodeStepPlugin, AnsibleDescribable, ProxyRunnerPlugin {
+public class AnsiblePlaybookWorflowNodeStep implements NodeStepPlugin, AnsibleDescribable, ProxyRunnerPlugin, ConfiguredBy<AnsiblePluginGroup> {
 
     public static final String SERVICE_PROVIDER_NAME = "com.batix.rundeck.plugins.AnsiblePlaybookWorflowNodeStep";
 
     public static Description DESC = null;
 
+    private AnsiblePluginGroup pluginGroup;
+
     static {
         DescriptionBuilder builder = DescriptionBuilder.builder();
+        builder.pluginGroup(AnsiblePluginGroup.class);
         builder.name(SERVICE_PROVIDER_NAME);
         builder.title("Ansible Playbook Workflow Node Step.");
         builder.description("Runs an Ansible Playbook");
@@ -72,17 +76,24 @@ public class AnsiblePlaybookWorflowNodeStep implements NodeStepPlugin, AnsibleDe
 
         configuration.put(AnsibleDescribable.ANSIBLE_LIMIT,entry.getNodename());
         // set log level
-        if (context.getDataContext().get("job").get("loglevel").equals("DEBUG")) {
+        String loglevel = AnsibleUtil.getJobLogLevel(context);
+
+        if ("DEBUG".equals(loglevel)) {
             configuration.put(AnsibleDescribable.ANSIBLE_DEBUG,"True");
         } else {
             configuration.put(AnsibleDescribable.ANSIBLE_DEBUG,"False");
         }
 
         AnsibleRunnerContextBuilder
-                contextBuilder = new AnsibleRunnerContextBuilder(context.getExecutionContext(), context.getFramework(), context.getNodes(), configuration);
+                contextBuilder = new AnsibleRunnerContextBuilder(context.getExecutionContext(),
+                context.getFramework(),
+                context.getNodes(),
+                configuration,
+                pluginGroup);
 
         try {
             runner = AnsibleRunner.buildAnsibleRunner(contextBuilder);
+            runner.setCustomTmpDirPath(AnsibleUtil.getCustomTmpPathDir(contextBuilder.getFramework()));
         } catch (ConfigurationException e) {
             throw new NodeStepException("Error configuring Ansible runner: "+e.getMessage(), AnsibleException.AnsibleFailureReason.ParseArgumentsError,e.getMessage());
         }
@@ -113,5 +124,10 @@ public class AnsiblePlaybookWorflowNodeStep implements NodeStepPlugin, AnsibleDe
     @Override
     public Map<String, String> getRuntimeFrameworkProperties(ExecutionContext context) {
         return AnsibleUtil.getRuntimeProperties(context, AnsibleDescribable.FWK_PROP_PREFIX);
+    }
+
+    @Override
+    public void setPluginGroup(AnsiblePluginGroup ansiblePluginGroup) {
+        this.pluginGroup = ansiblePluginGroup;
     }
 }

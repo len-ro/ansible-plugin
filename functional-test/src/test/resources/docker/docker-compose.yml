@@ -5,31 +5,75 @@ services:
     build:
       context: node
     environment:
-      NODE_USER_PASSWORD: ${NODE_USER_PASSWORD:-rundeck}
+      NODE_USER_PASSWORD: testpassword123
     networks:
       - rundeck
     ports:
       - "2222:22"
     volumes:
-      - ${PWD}/keys:/configuration:rw
+      - ./keys:/configuration:rw
+
+  ssh-node-2:
+    build:
+      context: node
+    environment:
+      NODE_USER_PASSWORD: password2_special!@#
+    networks:
+      - rundeck
+    ports:
+      - "2223:22"
+    volumes:
+      - ./keys:/configuration:rw
+
+  ssh-node-3:
+    build:
+      context: node
+    environment:
+      NODE_USER_PASSWORD: 'password3"quote''test'
+    networks:
+      - rundeck
+    ports:
+      - "2224:22"
+    volumes:
+      - ./keys:/configuration:rw
+
+  ssh-node-4:
+    build:
+      context: node
+    environment:
+      NODE_USER_PASSWORD: unused_password
+    networks:
+      - rundeck
+    ports:
+      - "2225:22"
+    volumes:
+      - ./keys:/configuration:rw
 
   rundeck:
     build:
       context: rundeck
       args:
-        RUNDECK_IMAGE: ${RUNDECK_IMAGE:-rundeck/rundeck:SNAPSHOT}
+        RUNDECK_IMAGE: rundeck/rundeck:SNAPSHOT
     image: rundeck-ansible-plugin:latest
     command: "-Dansible.debug=false"
     environment:
       RUNDECK_GRAILS_URL: http://localhost:4440
       RUNDECK_MULTIURL_ENABLED: "true"
       RUNDECK_SERVER_FORWARDED: "true"
+      RUNDECK_FEATURE_PLUGINGROUPS_ENABLED: "true"
+      RUNDECK_FEATURE_PLUGINGROUPS_NAME: "pluginGroups"
+
     networks:
       - rundeck
     ports:
-      - "4440"
+      - "4440:4440"
     volumes:
-    - ${PWD}/ansible:/home/rundeck/ansible:rw
+    - ./ansible:/home/rundeck/ansible:rw
+    - ./ansible-list:/home/rundeck/ansible-list:rw
+    - ./ansible-yaml-parsing:/home/rundeck/ansible-yaml-parsing:rw
+    - ./ansible-child-groups:/home/rundeck/ansible-child-groups:rw
+    - ./ansible-max-aliases:/home/rundeck/ansible-max-aliases:rw
+    - ./ansible-multi-node-auth:/home/rundeck/ansible-multi-node-auth:rw
 
 volumes:
   rundeck-data:
