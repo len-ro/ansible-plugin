@@ -995,13 +995,7 @@ public class AnsibleRunnerContextBuilder {
 
     public Map<String,String> getJobOptions(){
         Map<String, String> options = new HashMap<>();
-        if (context.getDataContext() == null) {
-            return options;
-        }
-        Map<String, String> jobOptions = context.getDataContext().get("job");
-        if (jobOptions == null) {
-            return options;
-
+        
         if (context == null || context.getDataContext() == null) {
             return options;
         }
