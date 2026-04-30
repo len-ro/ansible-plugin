@@ -1007,7 +1007,7 @@ public class AnsibleRunnerContextBuilder {
 
         for (Map.Entry<String, String> entry : jobOptions.entrySet()) {
             if (entry.getValue() != null) {
-                options.put("RD_JOB_" + entry.getKey().toUpperCase(), entry.getValue());
+                options.put("RD_JOB_" + entry.getKey().toUpperCase(Locale.ROOT), entry.getValue());
             }
         }
         return options;
